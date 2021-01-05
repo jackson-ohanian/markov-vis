@@ -3,6 +3,7 @@ require("ggforce")
 require("animation")
 require("gganimate")
 require("gifski")
+
 #' DF to Markov DF
 #'
 #' Find the markov chain matrix for the given input dataframe
@@ -27,6 +28,25 @@ find.steady <- function(data, itts, x0) {
   return(x0)
 }
 
+#' FQuick function to simply plot the steady state found with find.steady
+#' @param data the (1xN) steady state vector of a Markov Matrix
+#' @param col the colors of the plot (vector-like)
+#' @param markov a df-like (must be coercible by fortify) original markov
+#' @return a plot showing the column-wise proportion of final states
+#' @export
+plot.steady <- function(data, col = geom_col(), markov) {
+    ggplot(aes(x=1:length(data), y=data), data=markov)+
+    geom_col() + 
+    coord_flip() + ylab("Proportion After Simulation") + 
+    xlab("State (appearance order)") + ggtitle("Steady State")
+}
+
+#' Visualize the steady state calculation 
+#' @param data a markov style dataframe (NxN)
+#' @param itts the number of iterations to perform
+#' @param x0 an initial state of the chain
+#' @return The simulated steady state vector
+#' @export
 animate.markov <- function(data, itts, x0) {
   x <- data.frame(length(data[0]), itts)
   plots.frames <- c(itts)
@@ -55,13 +75,9 @@ animate.markov <- function(data, itts, x0) {
       plt <- ggplot() + coord_fixed()
     }
     }, clean=TRUE, convert="magick", movie.name="out.gif")
-  
-  
-  ## ANIMATE
-  return(anim)
+
+    return(anim)
 }
-
-
 
 
 ## DRIVER TO DEL TODO DEL
@@ -71,7 +87,8 @@ df
 
 mk = to.markov(df)
 mk
-find.steady(mk, 100, c(1, 0, 0))
+stead <- find.steady(mk, 100, c(1, 0, 0))
 plotdat <- animate.markov(mk, 100, c(1,0,0))
 animate(plotdat, renderer = gifski_renderer(), end_pause = 30)
 
+plot.steady(stead, markov=df)
